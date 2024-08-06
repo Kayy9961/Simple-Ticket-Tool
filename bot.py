@@ -18,7 +18,7 @@ async def on_ready():
         print("Canal no encontrado. Asegúrate de que el ID es correcto.")
         return
 
-    boton = Button(label="Crear Ticket", style=discord.ButtonStyle.primary)
+    boton_crear = Button(label="Crear Ticket", style=discord.ButtonStyle.primary)
 
     async def crear_ticket(interaction: discord.Interaction):
         guild = interaction.guild
@@ -29,14 +29,37 @@ async def on_ready():
         }
         ticket_channel = await guild.create_text_channel(f"ticket-{member.name}", overwrites=overwrites)
         await ticket_channel.send(f"Hola {member.mention}, este es tu ticket.")
+
+        boton_cerrar = Button(label="Cerrar Ticket", style=discord.ButtonStyle.danger)
+
+        async def cerrar_ticket(interaction: discord.Interaction):
+            await interaction.channel.delete()
+            await interaction.response.send_message("El ticket ha sido cerrado.", ephemeral=True)
+
+        boton_cerrar.callback = cerrar_ticket
+
+        embed = discord.Embed(
+            title="Cierra tu Ticket",
+            description="Presiona el botón de abajo para cerrar este ticket.",
+            color=discord.Color.blue()
+        )
+
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon.url)
+        
+        vista_cerrar = View()
+        vista_cerrar.add_item(boton_cerrar)
+
+        await ticket_channel.send(embed=embed, view=vista_cerrar)
+
         await interaction.response.send_message(f"Ticket creado: {ticket_channel.mention}", ephemeral=True)
 
-    boton.callback = crear_ticket
+    boton_crear.callback = crear_ticket
 
-    vista = View()
-    vista.add_item(boton)
+    vista_crear = View()
+    vista_crear.add_item(boton_crear)
 
-    await canal.send("Haz clic en el botón para crear un ticket.", view=vista)
+    await canal.send("Haz clic en el botón para crear un ticket.", view=vista_crear)
     print(f"Botón de creación de ticket enviado al canal: {canal.name}")
 
 bot.run('EL TOKEN DE TU BOT')
